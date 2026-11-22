@@ -32,7 +32,7 @@ const TABS: { id: TabId; label: string; icon: typeof Activity }[] = [
 ];
 
 export function StudyInspectorDrawer({ screenKey }: { screenKey: StudyScreenKey }) {
-  const { enabled, setEnabled } = useStudyMode();
+  const { enabled, setEnabled, activeTicketRef } = useStudyMode();
   const [activeTab, setActiveTab] = useState<TabId>("telemetry");
   const [openDrills, setOpenDrills] = useState<Record<string, boolean>>({});
   const telemetry = useTelemetryEvents();
@@ -64,7 +64,9 @@ export function StudyInspectorDrawer({ screenKey }: { screenKey: StudyScreenKey 
             </span>
           </div>
           <p className="mt-0.5 truncate font-mono text-[11px] text-slate-600 dark:text-zinc-400">
-            {module.screenTitle} • {module.endpointFocus}
+            {activeTicketRef
+              ? `Drawer: ${activeTicketRef} • POST /api/tickets/{id}/transition/`
+              : `${module.screenTitle} • ${module.endpointFocus}`}
           </p>
         </div>
         <button

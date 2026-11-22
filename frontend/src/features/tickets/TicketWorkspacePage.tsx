@@ -150,6 +150,15 @@ export function TicketWorkspacePage() {
   const canModifyTicket = (ticket: Ticket) =>
     Boolean(user && (user.is_staff || user.is_superuser || ticket.author.id === user.id));
 
+  const handleCloseDrawer = () => {
+    setSelectedTicketId(null);
+    if (searchParams.has("ticketId")) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("ticketId");
+      setSearchParams(nextParams, { replace: true });
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -432,7 +441,11 @@ export function TicketWorkspacePage() {
         )}
       </div>
 
-      <TicketDrawer ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />
+      <TicketDrawer
+        key={selectedTicketId ?? "closed"}
+        ticketId={selectedTicketId}
+        onClose={handleCloseDrawer}
+      />
       <CreateTicketModal open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );

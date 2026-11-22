@@ -1,17 +1,24 @@
 /**
- * Lifecycle Stage: Detail Slide-Over -> State-Machine Transitions, RBAC Inline Edit & Audit Timeline
- * Production Invariant (🔴): Renders only valid server-advertised next states and enforces author/staff edit boundaries.
+ * Lifecycle Stage: Detail Slide-Over -> State-Machine Transitions, RBAC Inline Edit/Delete & Audit Timeline
+ * Production Invariant (🔴): Renders only server-advertised next states, enforces author/staff controls, and syncs Study Mode.
  * Trap Prevented (⚠️): Presenting illegal status transitions or exposing edit controls that silently fail without guidance.
  */
-import { ArrowRight, Check, Edit3, Lock, ShieldCheck, X } from "lucide-react";
-import { useActionState, useState } from "react";
+import { ArrowRight, Check, Edit3, Lock, ShieldCheck, Trash2, X } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
 import { extractApiError } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { ActionBadge, formatStatusLabel, PriorityBadge, StatusBadge } from "../../components/ui/Badge";
 import { SkeletonBlock } from "../../components/ui/Skeleton";
 import { useToast } from "../../components/ui/Toast";
 import type { TicketPriority, TicketStatus } from "../../types/api";
-import { useTicketDetail, useTransitionTicket, useUpdateTicket, useUsers } from "./useTickets";
+import { useStudyMode } from "../study/StudyModeContext";
+import {
+  useDeleteTicket,
+  useTicketDetail,
+  useTransitionTicket,
+  useUpdateTicket,
+  useUsers,
+} from "./useTickets";
 
 interface TicketDrawerProps {
   ticketId: number | null;
@@ -21,13 +28,32 @@ interface TicketDrawerProps {
 export function TicketDrawer({ ticketId, onClose }: TicketDrawerProps) {
   const { user } = useAuth();
   const { notify } = useToast();
+  const { setActiveTicketRef } = useStudyMode();
   const { data: ticket, isLoading, isError } = useTicketDetail(ticketId);
   const { data: users = [] } = useUsers();
   const transitionMutation = useTransitionTicket();
   const updateMutation = useUpdateTicket();
+  const deleteMutation = useDeleteTicket();
 
   const [note, setNote] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Sync active ticket with Study Mode Inspector
+  useEffect(() => {
+    setActiveTicketRef(ticket?.reference_code ?? null);
+    return () => setActiveTicketRef(null);
+  }, [ticket?.reference_code, setActiveTicketRef]);
+
+  // Close cleanly on Escape key
+  useEffect(() => {
+    if (ticketId === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [ticketId, onClose]);
 
   const canModify = Boolean(
     user && ticket && (user.is_staff || user.is_superuser || ticket.author.id === user.id),
@@ -78,9 +104,29 @@ export function TicketDrawer({ ticketId, onClose }: TicketDrawerProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!ticket) return;
+    try {
+      await deleteMutation.mutateAsync(ticket.id);
+      notify("info", `Deleted ${ticket.reference_code}`, "Ticket removed from queue.");
+      onClose();
+    } catch (err) {
+      notify("error", "Delete blocked", extractApiError(err));
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/35 backdrop-blur-[1px]">
-      <div className="flex h-full w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      className="fixed inset-0 z-40 flex justify-end bg-slate-950/35 backdrop-blur-[1px]"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Ticket details drawer"
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-full w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+      >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 dark:border-zinc-800">
           <div className="flex items-center gap-2">
@@ -92,21 +138,52 @@ export function TicketDrawer({ ticketId, onClose }: TicketDrawerProps) {
           </div>
           <div className="flex items-center gap-1.5">
             {ticket && canModify && !isEditing && (
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-              >
-                <Edit3 className="h-3.5 w-3.5" />
-                Edit
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmDelete(false);
+                    setIsEditing(true);
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Edit
+                </button>
+                {confirmDelete ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={deleteMutation.isPending}
+                      onClick={handleDelete}
+                      className="rounded-md bg-rose-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-rose-700 disabled:opacity-50"
+                    >
+                      {deleteMutation.isPending ? "Deleting…" : "Confirm"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(false)}
+                      className="rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-600 dark:border-zinc-700 dark:text-zinc-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="rounded-md border border-slate-200 p-1.5 text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+                    title="Delete ticket"
+                    aria-label="Delete ticket"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </>
             )}
             <button
               type="button"
-              onClick={() => {
-                setIsEditing(false);
-                onClose();
-              }}
+              onClick={onClose}
               className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               aria-label="Close ticket drawer"
             >
@@ -295,7 +372,7 @@ export function TicketDrawer({ ticketId, onClose }: TicketDrawerProps) {
                     </h3>
                   </div>
                   <span className="font-mono text-[10px] text-slate-400">
-                    select_for_update()
+                    select_for_update(of=(&quot;self&quot;,))
                   </span>
                 </div>
 

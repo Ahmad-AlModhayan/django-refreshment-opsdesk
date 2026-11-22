@@ -172,6 +172,10 @@ SPECTACULAR_SETTINGS = {
     ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "TicketStatusEnum": "apps.tickets.models.TICKET_STATUS_CHOICES",
+        "TicketPriorityEnum": "apps.tickets.models.TICKET_PRIORITY_CHOICES",
+    },
 }
 
 # Conditional production security hardening (active whenever DEBUG=False)

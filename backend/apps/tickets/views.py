@@ -12,7 +12,7 @@ from django.db.models import Case, Count, IntegerField, Prefetch, Q, Sum, Value,
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.request import Request
@@ -153,9 +153,9 @@ class TicketViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
-            # Row-level lock prevents concurrent double-transition race conditions on PostgreSQL
+            # of=("self",) locks only the tickets row so PostgreSQL allows LEFT OUTER JOIN on nullable assignee
             ticket = get_object_or_404(
-                Ticket.objects.select_for_update().select_related("project", "author", "assignee"),
+                Ticket.objects.select_for_update(of=("self",)).select_related("project", "author", "assignee"),
                 pk=pk,
             )
             # Custom @action bypasses get_object(), so explicit object RBAC check is mandatory
@@ -212,10 +212,36 @@ class TicketViewSet(viewsets.ModelViewSet):
         return response
 
 
+class DashboardKPIsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    open = serializers.IntegerField()
+    in_progress = serializers.IntegerField()
+    awaiting_approval = serializers.IntegerField()
+    approved = serializers.IntegerField()
+    rejected = serializers.IntegerField()
+    resolved = serializers.IntegerField()
+    closed = serializers.IntegerField()
+    critical_sla = serializers.IntegerField()
+    sla_pressure_score = serializers.IntegerField()
+
+
+class DashboardPriorityBreakdownSerializer(serializers.Serializer):
+    low = serializers.IntegerField()
+    medium = serializers.IntegerField()
+    high = serializers.IntegerField()
+    critical = serializers.IntegerField()
+
+
+class DashboardMetricsResponseSerializer(serializers.Serializer):
+    kpis = DashboardKPIsSerializer()
+    by_priority = DashboardPriorityBreakdownSerializer()
+    recent_activity = AuditLogFeedSerializer(many=True)
+
+
 class DashboardMetricsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @extend_schema(responses={200: dict})
+    @extend_schema(responses={200: DashboardMetricsResponseSerializer})
     def get(self, request: Request) -> Response:
         closed_statuses = [Ticket.Status.RESOLVED, Ticket.Status.CLOSED]
 

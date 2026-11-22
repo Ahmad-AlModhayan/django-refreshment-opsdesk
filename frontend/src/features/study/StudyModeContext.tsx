@@ -1,5 +1,5 @@
 /**
- * Lifecycle Stage: Embedded Learning System -> Study Mode Toggle & Active Context Sync
+ * Lifecycle Stage: Embedded Learning System -> Study Mode Toggle & Active Route/Action Context Sync
  * Production Invariant (🔴): Defaults to OFF so OpsDesk ships as a pure enterprise portal until toggled ON.
  * Trap Prevented (⚠️): Cluttering operational UI permanently with educational chrome.
  */
@@ -11,23 +11,23 @@ interface StudyModeContextValue {
   enabled: boolean;
   toggle: () => void;
   setEnabled: (next: boolean) => void;
-  activeDrawerOpen: boolean;
-  setActiveDrawerOpen: (open: boolean) => void;
+  activeTicketRef: string | null;
+  setActiveTicketRef: (ref: string | null) => void;
 }
 
 const StudyModeContext = createContext<StudyModeContextValue | null>(null);
 
 export function StudyModeProvider({ children }: { children: ReactNode }) {
   const [enabled, setEnabled] = useState(false);
-  const [activeDrawerOpen, setActiveDrawerOpen] = useState(false);
+  const [activeTicketRef, setActiveTicketRef] = useState<string | null>(null);
 
   const toggle = useCallback(() => {
     setEnabled((prev) => !prev);
   }, []);
 
   const value = useMemo(
-    () => ({ enabled, toggle, setEnabled, activeDrawerOpen, setActiveDrawerOpen }),
-    [enabled, toggle, activeDrawerOpen],
+    () => ({ enabled, toggle, setEnabled, activeTicketRef, setActiveTicketRef }),
+    [enabled, toggle, activeTicketRef],
   );
 
   return <StudyModeContext value={value}>{children}</StudyModeContext>;

@@ -141,3 +141,8 @@ class Ticket(TimeStampedModel):
                 note=note.strip(),
             )
         return audit_entry
+
+
+TICKET_STATUS_CHOICES = Ticket.Status.choices
+TICKET_PRIORITY_CHOICES = Ticket.Priority.choices
+

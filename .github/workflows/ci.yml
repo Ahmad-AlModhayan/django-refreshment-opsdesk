@@ -53,9 +53,10 @@ jobs:
       - name: Check for missing migrations
         run: python manage.py makemigrations --check --dry-run
 
-      - name: Run Django system checks & test suite
+      - name: Run Django system checks, deploy audit & test suite
         run: |
           python manage.py check
+          DEBUG=False SECRET_KEY="ci-deploy-audit-strong-secret-key-0123456789abcdef0123456789abcdef" python manage.py check --deploy
           python manage.py test -v 2
 
   frontend:

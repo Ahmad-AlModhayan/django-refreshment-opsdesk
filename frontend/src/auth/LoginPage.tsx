@@ -3,7 +3,7 @@
  * Production Invariant (🔴): Manages form submission state natively via useActionState with zero manual loading/error races.
  * Trap Prevented (⚠️): Duplicate login submits or unvalidated state toggles causing stale auth banners.
  */
-import { ArrowRight, CheckCircle2, Lock, ShieldCheck, Terminal } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lock, Moon, ShieldCheck, Sun, Terminal } from "lucide-react";
 import { useActionState, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { extractApiError } from "../api/client";
@@ -45,6 +45,16 @@ export function LoginPage() {
 
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("AdminPassword123!");
+  const [darkMode, setDarkMode] = useState(() =>
+    document.documentElement.classList.contains("dark"),
+  );
+
+  const toggleTheme = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("opsdesk_theme", next ? "dark" : "light");
+  };
 
   const [formState, formAction, isPending] = useActionState<LoginActionState, FormData>(
     async (_prevState, formData) => {
@@ -119,7 +129,16 @@ export function LoginPage() {
       </div>
 
       {/* Right login form */}
-      <div className="flex items-center justify-center p-6 sm:p-10 lg:col-span-7">
+      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:col-span-7">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle color theme"
+          title="Toggle Light / Dark mode"
+          className="absolute top-5 right-5 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 transition hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         <div className="w-full max-w-md space-y-6">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 lg:hidden">

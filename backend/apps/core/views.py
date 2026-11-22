@@ -42,12 +42,18 @@ class LogoutRequestSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
+class HealthCheckResponseSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    database = serializers.CharField()
+    service = serializers.CharField()
+
+
 class HealthCheckView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes: list[Any] = []
     throttle_classes: list[Any] = []
 
-    @extend_schema(responses={200: serializers.DictField()})
+    @extend_schema(responses={200: HealthCheckResponseSerializer})
     def get(self, request: Request) -> Response:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")

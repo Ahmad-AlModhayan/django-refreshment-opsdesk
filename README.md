@@ -2,6 +2,12 @@
 
 Enterprise-grade IT Operations & Approval Portal built with **Django 6.1 + DRF + PostgreSQL 17 + React 19 + TypeScript + TanStack Query + Tailwind CSS + Nginx**, engineered with an embedded **Study Mode Engineering Inspector** for accelerated production architecture recall.
 
+## Clone Into Any Workspace
+```powershell
+git clone https://github.com/Ahmad-AlModhayan/django-refreshment-opsdesk.git
+cd django-refreshment-opsdesk
+```
+
 ## Quick Start (Local Development — PowerShell)
 
 ### 1. Start Django API (`http://127.0.0.1:8000`)

@@ -4,7 +4,7 @@
  * Trap Prevented (⚠️): Allowing clients to inject arbitrary initial status or spoof another author ID.
  */
 import { X } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { extractApiError } from "../../api/client";
 import { useToast } from "../../components/ui/Toast";
 import type { TicketPriority } from "../../types/api";
@@ -57,14 +57,27 @@ export function CreateTicketModal({ open, onClose }: CreateTicketModalProps) {
     { error: null },
   );
 
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-xs">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-xs"
+      onClick={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-ticket-heading"
+        onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 dark:border-zinc-800">

@@ -57,6 +57,10 @@ export async function transitionTicket(
   return data;
 }
 
+export async function deleteTicket(id: number): Promise<void> {
+  await apiClient.delete(`/tickets/${id}/`);
+}
+
 export async function exportTicketsCsv(params: TicketQueryParams): Promise<void> {
   const response = await apiClient.get<Blob>("/tickets/export/", {
     params,

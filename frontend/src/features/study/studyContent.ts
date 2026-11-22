@@ -200,7 +200,9 @@ ticket.transition_to(new_status, request.user)
 # Classic Read-Modify-Write race window`,
         safeCode: `with transaction.atomic():
     ticket = get_object_or_404(
-        Ticket.objects.select_for_update(), pk=pk
+        Ticket.objects.select_for_update(of=("self",))
+        .select_related("project", "author", "assignee"),
+        pk=pk,
     )
     self.check_object_permissions(request, ticket)
     ticket.transition_to(new_status, request.user)`,
@@ -269,10 +271,10 @@ const freshAccess = await refreshPromise; // All 401s await 1 call`,
           "Manual useEffect fetches suffer from out-of-order response races (an older slow query overwriting a newer fast query) and flash empty skeletons on every page click. TanStack Query cancels/ignores stale keys and keeps previous rows visible while fetching.",
       },
       {
-        question: "What happens on SQLite vs PostgreSQL when Django executes Ticket.objects.select_for_update()?",
-        hint: "Consider database-level row locking support.",
+        question: "Why does TicketViewSet.transition() call select_for_update(of=('self',)) instead of bare select_for_update()?",
+        hint: "Look at the nullable assignee FK joined via select_related('assignee') on PostgreSQL.",
         answer:
-          "PostgreSQL emits SELECT ... FOR UPDATE, acquiring a true row lock until transaction.atomic() commits. SQLite does not support row-level locks, so Django treats it as a no-op locally while enforcing it in PostgreSQL/Docker/CI.",
+          "Because assignee has null=True, Django emits a LEFT OUTER JOIN. PostgreSQL rejects FOR UPDATE on the nullable side of an outer join with NotSupportedError unless you scope the row lock to tickets using of=('self',). SQLite ignores FOR UPDATE locally, which is why PostgreSQL CI catches this trap.",
       },
     ],
   },

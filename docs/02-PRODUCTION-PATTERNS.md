@@ -30,16 +30,16 @@ queryset = Ticket.objects.select_related("project", "author", "assignee")
 ticket = Ticket.objects.get(pk=pk)
 ticket.transition_to(new_status, request.user)
 
-# ✓ Production-Safe — Row lock held until commit
+# ✓ Production-Safe — Row lock on tickets row only (PostgreSQL-safe with nullable assignee)
 with transaction.atomic():
     ticket = get_object_or_404(
-        Ticket.objects.select_for_update().select_related("project", "author", "assignee"),
+        Ticket.objects.select_for_update(of=("self",)).select_related("project", "author", "assignee"),
         pk=pk,
     )
     self.check_object_permissions(request, ticket)
     ticket.transition_to(new_status, actor=request.user, note=note)
 ```
-> **⚠️ Trap:** `select_for_update()` MUST be executed inside `transaction.atomic()` or PostgreSQL raises `TransactionManagementError`. On local SQLite, Django silently treats it as a no-op — always test concurrency guarantees against PostgreSQL in CI/Docker.
+> **⚠️ Trap:** Two real PostgreSQL traps: (1) `select_for_update()` MUST run inside `transaction.atomic()` or Django raises `TransactionManagementError`; (2) combining `select_for_update()` with `select_related("assignee")` (where `assignee` is `null=True`) emits a `LEFT OUTER JOIN` and PostgreSQL rejects it with `NotSupportedError: FOR UPDATE cannot be applied to the nullable side of an outer join` unless you pass `of=("self",)`. SQLite treats `select_for_update()` as a no-op locally, which is why PostgreSQL CI is mandatory.
 
 ---
 
