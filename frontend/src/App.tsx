@@ -1,22 +1,35 @@
 /**
- * Lifecycle Stage: Root SPA Composition -> Providers, Router & Error Containment
- * Production Invariant (🔴): Configures TanStack Query retry policy, wraps routes in ErrorBoundary and ProtectedRoute.
- * Trap Prevented (⚠️): Infinite retry loops on 401/403/404 responses or unprotected deep route mounts.
+ * Lifecycle Stage: Root SPA Composition -> Code-Split Routes, Providers & Error Containment
+ * Production Invariant (🔴): Lazy-loads feature screens with layout skeletons and prevents 4xx query retry storms.
+ * Trap Prevented (⚠️): Monolithic JS bundles delaying first paint or infinite retry loops on 401/403 responses.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import axios from "axios";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { LoginPage } from "./auth/LoginPage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
+import { TableSkeleton } from "./components/ui/Skeleton";
 import { ToastProvider } from "./components/ui/Toast";
-import { AuditLogPage } from "./features/audit/AuditLogPage";
-import { DashboardPage } from "./features/dashboard/DashboardPage";
-import { ProjectsPage } from "./features/projects/ProjectsPage";
 import { StudyModeProvider } from "./features/study/StudyModeContext";
-import { TicketWorkspacePage } from "./features/tickets/TicketWorkspacePage";
 import { AppShell } from "./layouts/AppShell";
+
+const DashboardPage = lazy(() =>
+  import("./features/dashboard/DashboardPage").then((m) => ({ default: m.DashboardPage })),
+);
+const TicketWorkspacePage = lazy(() =>
+  import("./features/tickets/TicketWorkspacePage").then((m) => ({
+    default: m.TicketWorkspacePage,
+  })),
+);
+const ProjectsPage = lazy(() =>
+  import("./features/projects/ProjectsPage").then((m) => ({ default: m.ProjectsPage })),
+);
+const AuditLogPage = lazy(() =>
+  import("./features/audit/AuditLogPage").then((m) => ({ default: m.AuditLogPage })),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +46,14 @@ const queryClient = new QueryClient({
   },
 });
 
+function RouteFallback() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+      <TableSkeleton rows={8} />
+    </div>
+  );
+}
+
 export function App() {
   return (
     <ErrorBoundary>
@@ -45,10 +66,38 @@ export function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route element={<ProtectedRoute />}>
                     <Route element={<AppShell />}>
-                      <Route index element={<DashboardPage />} />
-                      <Route path="tickets" element={<TicketWorkspacePage />} />
-                      <Route path="projects" element={<ProjectsPage />} />
-                      <Route path="audit" element={<AuditLogPage />} />
+                      <Route
+                        index
+                        element={
+                          <Suspense fallback={<RouteFallback />}>
+                            <DashboardPage />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="tickets"
+                        element={
+                          <Suspense fallback={<RouteFallback />}>
+                            <TicketWorkspacePage />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="projects"
+                        element={
+                          <Suspense fallback={<RouteFallback />}>
+                            <ProjectsPage />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="audit"
+                        element={
+                          <Suspense fallback={<RouteFallback />}>
+                            <AuditLogPage />
+                          </Suspense>
+                        }
+                      />
                     </Route>
                   </Route>
                   <Route path="*" element={<Navigate to="/" replace />} />

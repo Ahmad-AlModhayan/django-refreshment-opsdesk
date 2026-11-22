@@ -35,30 +35,30 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 dark:bg-zinc-950">
-          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-zinc-50 p-6 dark:bg-zinc-950">
+          <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.08)] dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
-                <AlertTriangle className="h-5 w-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-400">
+                <AlertTriangle className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                   Workspace view encountered an error
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   The fault was isolated by the root ErrorBoundary.
                 </p>
               </div>
             </div>
-            <pre className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-rose-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-rose-400">
+            <pre className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs text-rose-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-rose-400">
               {this.state.errorMessage}
             </pre>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-indigo-700"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-medium text-white transition hover:bg-zinc-800 active:scale-[0.98] dark:bg-emerald-600 dark:hover:bg-emerald-500"
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} />
               Reload workspace
             </button>
           </div>

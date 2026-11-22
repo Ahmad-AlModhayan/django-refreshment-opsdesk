@@ -1,12 +1,18 @@
 /**
- * Lifecycle Stage: Authentication Entry -> Enterprise Sign-In with React 19 useActionState
- * Production Invariant (🔴): Manages form submission state natively via useActionState with zero manual loading/error races.
- * Trap Prevented (⚠️): Duplicate login submits or unvalidated state toggles causing stale auth banners.
+ * Lifecycle Stage: Authentication Entry -> Asymmetric Split-Screen Sign-In with React 19 useActionState
+ * Production Invariant (🔴): Uses min-h-[100dvh], layoutId persona switcher, MagneticButton CTA, and useActionState.
+ * Trap Prevented (⚠️): Centered hero clichés, purple gradients, or duplicate form submission races.
  */
-import { ArrowRight, CheckCircle2, Lock, Moon, ShieldCheck, Sun, Terminal } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Check, Lock, Moon, ShieldCheck, Sun, Terminal } from "lucide-react";
 import { useActionState, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { extractApiError } from "../api/client";
+import {
+  LivePulseDot,
+  MagneticButton,
+  SPRING_TACTILE,
+} from "../components/ui/MotionPrimitives";
 import { useAuth } from "./AuthContext";
 
 interface LoginActionState {
@@ -16,10 +22,10 @@ interface LoginActionState {
 const DEMO_ACCOUNTS = [
   {
     label: "Admin",
-    roleNote: "Full RBAC + Staff Approvals",
+    roleNote: "Full RBAC + Approvals",
     username: "admin",
     password: "AdminPassword123!",
-    badge: "is_superuser",
+    badge: "superuser",
   },
   {
     label: "Manager",
@@ -30,7 +36,7 @@ const DEMO_ACCOUNTS = [
   },
   {
     label: "Requester",
-    roleNote: "Author-Only Edit (IDOR Demo)",
+    roleNote: "Author-Only (IDOR Demo)",
     username: "requester",
     password: "RequesterPassword123!",
     badge: "standard",
@@ -79,88 +85,99 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-slate-50 dark:bg-zinc-950 lg:grid-cols-12">
-      {/* Left enterprise identity panel */}
-      <div className="hidden flex-col justify-between border-r border-slate-200 bg-slate-900 p-10 text-slate-100 dark:border-zinc-800 dark:bg-zinc-900/60 lg:col-span-5 lg:flex">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-white shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
+    <div className="grid min-h-[100dvh] grid-cols-1 bg-zinc-50 dark:bg-zinc-950 lg:grid-cols-12">
+      {/* Left Architectural Identity Panel */}
+      <div className="ops-dot-grid relative hidden flex-col justify-between border-r border-zinc-800 bg-zinc-950 p-10 text-zinc-100 lg:col-span-5 lg:flex">
+        <div className="space-y-12">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                <ShieldCheck className="h-4 w-4" strokeWidth={1.75} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold tracking-tight text-zinc-50">OpsDesk</p>
+                <p className="font-mono text-[10px] text-zinc-500">django-refreshment</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold tracking-tight text-white">OpsDesk</p>
-              <p className="font-mono text-[11px] text-slate-400">django-refreshment v1.0</p>
-            </div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/90 px-2.5 py-1 font-mono text-[10px] text-zinc-300">
+              <LivePulseDot tone="emerald" />
+              PG17 Ready
+            </span>
           </div>
 
-          <div className="mt-14 space-y-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1 font-mono text-[11px] text-indigo-300">
-              <Terminal className="h-3 w-3" />
-              Enterprise IT Operations & Approval Control Plane
+          <div className="space-y-4">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-emerald-400">
+              <Terminal className="h-3.5 w-3.5" strokeWidth={1.75} />
+              IT Operations & Approval Plane
             </span>
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
-              Production-grade change governance with zero query waste.
+            <h1 className="text-3xl font-semibold tracking-tighter text-zinc-50 xl:text-4xl xl:leading-[1.1]">
+              Deterministic change governance built for zero query waste.
             </h1>
-            <p className="text-sm leading-relaxed text-slate-400">
-              Built on latest stable Django + DRF + React 19 + TanStack Query. Inspect live SQL
-              query counts, state-machine locks, and single-flight JWT refresh directly inside
-              Study Mode.
+            <p className="max-w-[46ch] text-sm leading-relaxed text-zinc-400">
+              Inspect live SQL query telemetry, PostgreSQL row-locked state transitions, and
+              single-flight JWT rotation directly from the workspace.
             </p>
           </div>
 
-          <div className="mt-10 space-y-3 border-t border-slate-800 pt-8 text-xs text-slate-300">
+          <ul className="divide-y divide-zinc-800/80 border-y border-zinc-800/80 text-xs text-zinc-300">
             {[
               "Single-flight JWT rotation & server-side refresh blacklisting",
-              "Row-locked select_for_update() transitions with atomic audit trails",
-              "O(1) SQL queries verified by automated assertNumQueries tests",
-              "Built-in Study Mode Inspector for accelerated architecture recall",
+              "Row-locked select_for_update(of=('self',)) atomic transitions",
+              "Constant O(1) SQL queries verified by assertNumQueries CI gates",
+              "Built-in Study Mode Engineering Inspector for architecture recall",
             ].map((item) => (
-              <div key={item} className="flex items-start gap-2.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+              <li key={item} className="flex items-start gap-2.5 py-3">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" strokeWidth={2} />
                 <span>{item}</span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
 
-        <p className="font-mono text-[11px] text-slate-500">
-          PostgreSQL 17 • Gunicorn • Nginx Reverse Proxy • OpenAPI 3
-        </p>
+        <div className="flex items-center justify-between font-mono text-[11px] text-zinc-500">
+          <span>Django 6.1 • React 19 • PostgreSQL 17</span>
+          <span>OpenAPI 3</span>
+        </div>
       </div>
 
-      {/* Right login form */}
-      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:col-span-7">
+      {/* Right Workspace Sign-In Surface */}
+      <div className="relative flex items-center justify-center px-4 py-10 sm:px-10 lg:col-span-7">
         <button
           type="button"
           onClick={toggleTheme}
           aria-label="Toggle color theme"
           title="Toggle Light / Dark mode"
-          className="absolute top-5 right-5 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 transition hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="absolute top-5 right-5 rounded-lg border border-zinc-200 bg-white p-2 text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 active:scale-[0.96] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
-          {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {darkMode ? (
+            <Sun className="h-4 w-4" strokeWidth={1.75} />
+          ) : (
+            <Moon className="h-4 w-4" strokeWidth={1.75} />
+          )}
         </button>
-        <div className="w-full max-w-md space-y-6">
+
+        <div className="w-full max-w-md space-y-7">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                <ShieldCheck className="h-4 w-4" />
+            <div className="mb-3 flex items-center gap-2 lg:hidden">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-950 text-emerald-400 dark:bg-emerald-500/15">
+                <ShieldCheck className="h-4 w-4" strokeWidth={1.75} />
               </div>
-              <span className="text-sm font-semibold">OpsDesk</span>
+              <span className="text-sm font-semibold tracking-tight">OpsDesk</span>
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-zinc-50">
-              Sign in to OpsDesk
+            <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+              Sign in to workspace
             </h2>
-            <p className="text-sm text-slate-500 dark:text-zinc-400">
-              Authenticate with your enterprise credentials or pick a seeded demo persona below.
+            <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+              Authenticate with enterprise credentials or select a seeded role below.
             </p>
           </div>
 
-          {/* Demo persona quick-selector */}
-          <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-              One-Click Dev Role Selector
+          {/* Segmented Tactile Dev Role Selector */}
+          <div className="space-y-2">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Demo Role Preset
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-zinc-200/90 bg-zinc-100/80 p-1 dark:border-zinc-800 dark:bg-zinc-900/90">
               {DEMO_ACCOUNTS.map((acct) => {
                 const active = username === acct.username;
                 return (
@@ -171,21 +188,26 @@ export function LoginPage() {
                       setUsername(acct.username);
                       setPassword(acct.password);
                     }}
-                    className={`rounded-lg border px-2.5 py-2 text-left transition ${
-                      active
-                        ? "border-indigo-500 bg-indigo-50/70 dark:border-indigo-400 dark:bg-indigo-500/10"
-                        : "border-slate-200 hover:border-slate-300 dark:border-zinc-800 dark:hover:border-zinc-700"
-                    }`}
+                    className="relative rounded-lg px-2.5 py-2 text-left transition active:scale-[0.98]"
                   >
-                    <p className="text-xs font-semibold text-slate-900 dark:text-zinc-100">
-                      {acct.label}
-                    </p>
-                    <p className="mt-0.5 truncate font-mono text-[10px] text-indigo-600 dark:text-indigo-400">
-                      {acct.badge}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-[10px] leading-tight text-slate-500 dark:text-zinc-400">
-                      {acct.roleNote}
-                    </p>
+                    {active && (
+                      <motion.span
+                        layoutId="demo-persona-active"
+                        transition={SPRING_TACTILE}
+                        className="absolute inset-0 rounded-lg border border-zinc-200/90 bg-white shadow-2xs dark:border-zinc-700 dark:bg-zinc-950"
+                      />
+                    )}
+                    <div className="relative z-10">
+                      <p className="text-xs font-semibold text-zinc-950 dark:text-zinc-100">
+                        {acct.label}
+                      </p>
+                      <p className="mt-0.5 truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-400">
+                        {acct.badge}
+                      </p>
+                      <p className="mt-1 line-clamp-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+                        {acct.roleNote}
+                      </p>
+                    </div>
                   </button>
                 );
               })}
@@ -194,7 +216,7 @@ export function LoginPage() {
 
           <form
             action={formAction}
-            className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900"
+            className="space-y-4 rounded-2xl border border-zinc-200/90 bg-white p-6 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.06)] dark:border-zinc-800 dark:bg-zinc-900/80"
           >
             {formState.error && (
               <div
@@ -205,10 +227,10 @@ export function LoginPage() {
               </div>
             )}
 
-            <div className="space-y-1.5">
+            <div className="grid gap-1.5">
               <label
                 htmlFor="username"
-                className="block text-xs font-medium text-slate-700 dark:text-zinc-300"
+                className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
               >
                 Username
               </label>
@@ -220,14 +242,19 @@ export function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
               />
+              <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                Seeded personas: <code className="font-mono">admin</code>,{" "}
+                <code className="font-mono">manager</code>, or{" "}
+                <code className="font-mono">requester</code>.
+              </p>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="grid gap-1.5">
               <label
                 htmlFor="password"
-                className="block text-xs font-medium text-slate-700 dark:text-zinc-300"
+                className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
               >
                 Password
               </label>
@@ -240,20 +267,23 @@ export function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-9 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 pr-9 text-sm text-zinc-950 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                 />
-                <Lock className="pointer-events-none absolute top-2.5 right-3 h-4 w-4 text-slate-400" />
+                <Lock
+                  className="pointer-events-none absolute top-2.5 right-3 h-4 w-4 text-zinc-400"
+                  strokeWidth={1.75}
+                />
               </div>
             </div>
 
-            <button
+            <MagneticButton
               type="submit"
               disabled={isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             >
-              {isPending ? "Signing in…" : "Sign in to workspace"}
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              <span>{isPending ? "Verifying session…" : "Sign in to control plane"}</span>
+              <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
+            </MagneticButton>
           </form>
         </div>
       </div>

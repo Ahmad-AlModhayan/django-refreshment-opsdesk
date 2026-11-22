@@ -1,7 +1,7 @@
 /**
- * Lifecycle Stage: Frontend Build & Dev Server -> Vite + Dev/Prod API Proxy Parity
- * Production Invariant (🔴): Proxies /api to Django so the app uses identical relative /api/... URLs in dev and Nginx prod.
- * Trap Prevented (⚠️): Hardcoding http://localhost:8000 in Axios and breaking production deploys or CORS preflights.
+ * Lifecycle Stage: Frontend Build & Dev Server -> Vite + Dev/Prod API Proxy Parity + Vendor Code Splitting
+ * Production Invariant (🔴): Proxies /api to Django for identical relative paths and splits motion/vendor bundles.
+ * Trap Prevented (⚠️): Hardcoding localhost URLs in Axios or shipping monolithic >500 kB initial JS chunks.
  */
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -9,6 +9,19 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: "motion", test: /node_modules[\\/]framer-motion/ },
+            { name: "query-http", test: /node_modules[\\/](@tanstack|axios)/ },
+            { name: "react-vendor", test: /node_modules[\\/](react|react-dom|react-router)/ },
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

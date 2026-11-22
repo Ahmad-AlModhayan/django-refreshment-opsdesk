@@ -1,7 +1,7 @@
 /**
- * Lifecycle Stage: UI Design System -> Status, Priority & Role Pill Primitives
- * Production Invariant (🔴): Centralizes semantic color tokens across Light and Dark modes for visual consistency.
- * Trap Prevented (⚠️): Scattered Tailwind status classes drifting across tables, drawers, and audit timelines.
+ * Lifecycle Stage: UI Design System -> Calibrated Status, Priority & Action Pill Primitives
+ * Production Invariant (🔴): Enforces singular Zinc + Emerald neutral hierarchy with desaturated semantic signals.
+ * Trap Prevented (⚠️): Purple/neon color drift or inconsistent status badges across tables, drawers, and audit feeds.
  */
 import type { AuditAction, TicketPriority, TicketStatus } from "../../types/api";
 
@@ -9,44 +9,44 @@ const STATUS_STYLES: Record<TicketStatus, { label: string; className: string; do
   open: {
     label: "Open",
     className:
-      "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300",
-    dot: "bg-sky-500",
+      "border-zinc-300/80 bg-zinc-100/80 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-200",
+    dot: "bg-zinc-500 dark:bg-zinc-400",
   },
   in_progress: {
     label: "In Progress",
     className:
-      "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300",
-    dot: "bg-indigo-500",
+      "border-sky-300/70 bg-sky-50/80 text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300",
+    dot: "bg-sky-600 dark:bg-sky-400",
   },
   awaiting_approval: {
     label: "Awaiting Approval",
     className:
-      "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
-    dot: "bg-amber-500",
+      "border-amber-300/80 bg-amber-50/80 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
+    dot: "bg-amber-600 dark:bg-amber-400",
   },
   approved: {
     label: "Approved",
     className:
-      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
-    dot: "bg-emerald-500",
+      "border-emerald-300/80 bg-emerald-50/80 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
+    dot: "bg-emerald-600 dark:bg-emerald-400",
   },
   rejected: {
     label: "Rejected",
     className:
-      "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300",
-    dot: "bg-rose-500",
+      "border-rose-300/80 bg-rose-50/80 text-rose-900 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300",
+    dot: "bg-rose-600 dark:bg-rose-400",
   },
   resolved: {
     label: "Resolved",
     className:
-      "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-500/30 dark:bg-teal-500/10 dark:text-teal-300",
-    dot: "bg-teal-500",
+      "border-teal-300/70 bg-teal-50/80 text-teal-900 dark:border-teal-500/30 dark:bg-teal-500/10 dark:text-teal-300",
+    dot: "bg-teal-600 dark:bg-teal-400",
   },
   closed: {
     label: "Closed",
     className:
-      "border-slate-200 bg-slate-100 text-slate-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
-    dot: "bg-slate-400 dark:bg-zinc-500",
+      "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500",
+    dot: "bg-zinc-400 dark:bg-zinc-600",
   },
 };
 
@@ -54,22 +54,22 @@ const PRIORITY_STYLES: Record<TicketPriority, { label: string; className: string
   low: {
     label: "Low",
     className:
-      "border-slate-200 bg-slate-50 text-slate-600 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300",
+      "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
   },
   medium: {
     label: "Medium",
     className:
-      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300",
+      "border-zinc-300 bg-zinc-100/70 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-200",
   },
   high: {
     label: "High",
     className:
-      "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300",
+      "border-amber-300/80 bg-amber-50/70 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
   },
   critical: {
     label: "Critical",
     className:
-      "border-rose-300 bg-rose-50 text-rose-700 font-semibold dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-300",
+      "border-rose-300 bg-rose-50 text-rose-800 font-semibold dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-300",
   },
 };
 
@@ -93,7 +93,7 @@ export function PriorityBadge({ priority }: { priority: TicketPriority }) {
   const cfg = PRIORITY_STYLES[priority] ?? PRIORITY_STYLES.medium;
   return (
     <span
-      className={`inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-tight whitespace-nowrap ${cfg.className}`}
+      className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-tight whitespace-nowrap ${cfg.className}`}
     >
       {cfg.label}
     </span>
@@ -103,15 +103,15 @@ export function PriorityBadge({ priority }: { priority: TicketPriority }) {
 export function ActionBadge({ action }: { action: AuditAction }) {
   const styles: Record<AuditAction, string> = {
     created:
-      "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300",
+      "border-zinc-300 bg-zinc-100 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
     updated:
-      "border-slate-200 bg-slate-100 text-slate-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+      "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
     transitioned:
-      "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300",
+      "border-emerald-300/80 bg-emerald-50/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
   };
   return (
     <span
-      className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase ${styles[action]}`}
+      className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-tight ${styles[action]}`}
     >
       {action}
     </span>
